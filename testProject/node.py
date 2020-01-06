@@ -31,6 +31,7 @@ def assign_nonce(transaction):
     """
     print("ナンスを代入します\n")
     # ナンスができたらそれをノード全体に送信する
+    # だるい!!!
 
 
 
@@ -47,7 +48,6 @@ def send_result(transaction, conn):
     """
     print("ユーザに処理結果を送信します")
     conn.send(b'process result from node')
-
 
 
 def accept_node(sock, mask):

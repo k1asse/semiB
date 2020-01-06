@@ -2,11 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="eff6b873-a900-4cd5-a095-95158d16ef1c" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/testProject.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/testProject.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/node.py" beforeDir="false" afterPath="$PROJECT_DIR$/node.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/user.py" beforeDir="false" afterPath="$PROJECT_DIR$/user.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -139,7 +136,7 @@
       <workItem from="1575864134626" duration="647000" />
       <workItem from="1575864831625" duration="2894000" />
       <workItem from="1576566014408" duration="5884000" />
-      <workItem from="1577876493880" duration="13567000" />
+      <workItem from="1577876493880" duration="14907000" />
     </task>
     <task id="LOCAL-00001" summary="ベースとなるクラス・クラスメソッドの作成&#10;(user.py, node.py, transaction.py)">
       <created>1576651946029</created>
@@ -148,7 +145,14 @@
       <option name="project" value="LOCAL" />
       <updated>1576651946029</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="ユーザ・ノード間のネットワークを(だいたい)構成した&#10;取引情報として送る文字列の先頭を&quot;transaction&quot;にすると&#10;型だけ用意している(中身はまだ記述してない)関数が読み出される">
+      <created>1578280736670</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1578280736670</updated>
+    </task>
+    <option name="localTasksCounter" value="3" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -169,45 +173,46 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="ベースとなるクラス・クラスメソッドの作成&#10;(user.py, node.py, transaction.py)" />
-    <option name="LAST_COMMIT_MESSAGE" value="ベースとなるクラス・クラスメソッドの作成&#10;(user.py, node.py, transaction.py)" />
+    <MESSAGE value="ユーザ・ノード間のネットワークを(だいたい)構成した&#10;取引情報として送る文字列の先頭を&quot;transaction&quot;にすると&#10;型だけ用意している(中身はまだ記述してない)関数が読み出される" />
+    <option name="LAST_COMMIT_MESSAGE" value="ユーザ・ノード間のネットワークを(だいたい)構成した&#10;取引情報として送る文字列の先頭を&quot;transaction&quot;にすると&#10;型だけ用意している(中身はまだ記述してない)関数が読み出される" />
   </component>
   <component name="WindowStateProjectService">
     <state x="249" y="76" key="#Notifications" timestamp="1576651991334">
       <screen x="0" y="23" width="1280" height="737" />
     </state>
     <state x="249" y="76" key="#Notifications/0.23.1280.737@0.23.1280.737" timestamp="1576651991334" />
-    <state x="422" y="23" key="CommitChangelistDialog2" timestamp="1576651945601">
+    <state x="422" y="23" key="CommitChangelistDialog2" timestamp="1578280736367">
       <screen x="0" y="23" width="1280" height="737" />
     </state>
-    <state x="422" y="23" key="CommitChangelistDialog2/0.23.1280.737@0.23.1280.737" timestamp="1576651945601" />
-    <state width="1220" height="171" key="GridCell.Tab.0.bottom" timestamp="1577007154435">
+    <state x="422" y="23" key="CommitChangelistDialog2/0.23.1280.737@0.23.1280.737" timestamp="1578280736367" />
+    <state width="812" height="171" key="GridCell.Tab.0.bottom" timestamp="1578282104718">
       <screen x="0" y="23" width="1280" height="737" />
     </state>
-    <state width="1220" height="171" key="GridCell.Tab.0.bottom/0.23.1280.737@0.23.1280.737" timestamp="1577007154435" />
-    <state width="1220" height="171" key="GridCell.Tab.0.center" timestamp="1577007154434">
+    <state width="812" height="171" key="GridCell.Tab.0.bottom/0.23.1280.737@0.23.1280.737" timestamp="1578282104718" />
+    <state width="812" height="171" key="GridCell.Tab.0.center" timestamp="1578282104717">
       <screen x="0" y="23" width="1280" height="737" />
     </state>
-    <state width="1220" height="171" key="GridCell.Tab.0.center/0.23.1280.737@0.23.1280.737" timestamp="1577007154434" />
-    <state width="1220" height="171" key="GridCell.Tab.0.left" timestamp="1577007154434">
+    <state width="812" height="171" key="GridCell.Tab.0.center/0.23.1280.737@0.23.1280.737" timestamp="1578282104717" />
+    <state width="812" height="171" key="GridCell.Tab.0.left" timestamp="1578282104716">
       <screen x="0" y="23" width="1280" height="737" />
     </state>
-    <state width="1220" height="171" key="GridCell.Tab.0.left/0.23.1280.737@0.23.1280.737" timestamp="1577007154434" />
-    <state width="1220" height="171" key="GridCell.Tab.0.right" timestamp="1577007154435">
+    <state width="812" height="171" key="GridCell.Tab.0.left/0.23.1280.737@0.23.1280.737" timestamp="1578282104716" />
+    <state width="812" height="171" key="GridCell.Tab.0.right" timestamp="1578282104717">
       <screen x="0" y="23" width="1280" height="737" />
     </state>
-    <state width="1220" height="171" key="GridCell.Tab.0.right/0.23.1280.737@0.23.1280.737" timestamp="1577007154435" />
+    <state width="812" height="171" key="GridCell.Tab.0.right/0.23.1280.737@0.23.1280.737" timestamp="1578282104717" />
     <state x="176" y="38" key="SettingsEditor" timestamp="1576566105553">
       <screen x="0" y="23" width="1280" height="737" />
     </state>
     <state x="176" y="38" key="SettingsEditor/0.23.1280.737@0.23.1280.737" timestamp="1576566105553" />
-    <state x="249" y="150" key="Vcs.Push.Dialog.v2" timestamp="1576651976825">
+    <state x="249" y="150" key="Vcs.Push.Dialog.v2" timestamp="1578280757797">
       <screen x="0" y="23" width="1280" height="737" />
     </state>
-    <state x="249" y="150" key="Vcs.Push.Dialog.v2/0.23.1280.737@0.23.1280.737" timestamp="1576651976825" />
+    <state x="249" y="150" key="Vcs.Push.Dialog.v2/0.23.1280.737@0.23.1280.737" timestamp="1578280757797" />
   </component>
   <component name="com.intellij.coverage.CoverageDataManagerImpl">
     <SUITE FILE_PATH="coverage/testProject$test2.coverage" NAME="test2 Coverage Results" MODIFIED="1576566108237" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
     <SUITE FILE_PATH="coverage/testProject$test.coverage" NAME="test Coverage Results" MODIFIED="1575443654519" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
-    <SUITE FILE_PATH="coverage/testProject$user.coverage" NAME="user Coverage Results" MODIFIED="1576651823552" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
+    <SUITE FILE_PATH="coverage/testProject$user.coverage" NAME="user Coverage Results" MODIFIED="1578282101688" SOURCE_PROVIDER="com.intellij.coverage.DefaultCoverageFileProvider" RUNNER="coverage.py" COVERAGE_BY_TEST_ENABLED="true" COVERAGE_TRACING_ENABLED="false" WORKING_DIRECTORY="$PROJECT_DIR$" />
   </component>
 </project>
