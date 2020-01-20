@@ -2,6 +2,7 @@ from transaction import Transaction
 import socket
 import selectors
 import sys
+import os
 
 sel = selectors.DefaultSelector()
 args = sys.argv
@@ -88,13 +89,15 @@ def read_node(conn, _):
         if data.startswith('transaction'):
             # 小さいポート番号を持つノードから取引情報がきた時
             # 送信元が自分なら送らない(
-            if int(data.split()[2]) != node_port:
+            if len(data.split()) > 1 and (int(data.split()[2]) != node_port):
                 send_message_latter_node(data)
             # 取引情報の処理(スレッドの開始)
             transact(data)
         elif data.startswith('nonce'):
             # ナンスを発見されたらやめる (スレッドの終了)
             print("nonce")
+            # ナンスがあってるか確認する
+
         elif data.startswith('connection_check'):
             # 大きいポート番号をもつノードから接続確認がきた時
             print("connection_check")
@@ -120,6 +123,8 @@ def read_user(conn, _):
                 # この文字列をそのまま次のノードに送る
                 data.replace('transaction', 'transaction from' + str(node_port), 1)
                 send_message_latter_node(data)
+                # 取引情報の処理(スレッドの開始)
+                transact(data)
             else:
                 # 取引情報じゃねえからuserに拒否メッセージを出す
                 print("ユーザからの取引情報を拒否する")
@@ -129,7 +134,8 @@ def read_user(conn, _):
             conn.close()
         else:
             print('echoing', repr(data), 'to', conn)
-            conn.send(data)
+            conn.send(data.encode())
+            conn.close()
     else:
         print('closing', conn)
         sel.unregister(conn)
@@ -139,13 +145,13 @@ def read_user(conn, _):
 def send_message_former_node(string):
     """前の(ひとつ小さい)ポート番号のノードに、stringに入力されたメッセージを送る"""
     send_port = node_port - 1
-    if node_port != 10000:  # 10000は最小値なので除外
+    if node_port > 10000:  # 10000は最小値なので除外
         while True:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 try:
                     print("send_port(former): " + str(send_port))
-                    s.connect(('127.0.0.1', send_port))
                     if send_port >= 10000:
+                        s.connect(('127.0.0.1', send_port))
                         s.sendall(string.encode())
                     break
                 except ConnectionRefusedError:
@@ -160,10 +166,13 @@ def send_message_latter_node(string):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:
                 print("send_port(latter): " + str(send_port))
-                s.connect(('127.0.0.1', send_port))
                 if send_port < 10000 + MAX_NODES:
-                    s.sendall(string.encode())
-                    break
+                    if send_port == node_port:
+                        break
+                    else:
+                        s.connect(('127.0.0.1', send_port))
+                        s.sendall(string.encode())
+                        break
                 else:
                     # ポート番号の最大値に達したら先頭に送るよう変更する
                     # (send_portを10000にして再度ループを回せば最小値がでる)
@@ -174,9 +183,7 @@ def send_message_latter_node(string):
 
 
 def std_input(conn, _):
-    line = sys.stdin.readline()
-    # 改行があれば削除
-    line.rstrip('\n')
+    line = sys.stdin.readline().strip()
     if line:
         print("I'll send message: " + line)
         send_message_latter_node(line)
