@@ -56,7 +56,13 @@ def std_input(conn, _):
     if line:
         if line == '/send':
             print("/send money")
-            make_transaction("sender_address", "receiver_address", 12345)
+            print("sender_address?")
+            sender_address = sys.stdin.readline().strip()
+            print("receiver_address?")
+            receiver_address = sys.stdin.readline().strip()
+            print("value?")
+            value = sys.stdin.readline().strip()
+            make_transaction(sender_address,receiver_address,value)
         elif line == '/history':
             print("/history")
         else:
@@ -67,12 +73,16 @@ def std_input(conn, _):
         conn.close()
 
 
-def make_transaction(receiver, value):
+def make_transaction(sender, receiver, value):
     """
     取引情報を作成する。具体的にはsender, receiver, valueを用いて文字列を作成する
     取引情報の文字列の先頭が"transaction"であれば
     ノードが取引情報だと思ってくれます
     """
+    trans = "transaction" + ',' + sender + ',' + receiver + ',' + value
+    send_message(trans)
+    
+    
 
 
 
@@ -95,7 +105,7 @@ sel.register(sock1, selectors.EVENT_READ, accept)
 sel.register(sys.stdin, selectors.EVENT_READ, std_input)
 
 # ノードに接続
-send_message("hello")
+#send_message("hello")
 
 print("Commands:\nSending money: /send\nCheck transaction history: /history")
 
@@ -105,5 +115,5 @@ while True:
     # print(events)
     for key, mask in events:
         callback = key.data
-        print(key.data)
+        #print(key.data)
         callback(key.fileobj, mask)

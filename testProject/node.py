@@ -70,14 +70,14 @@ def transact(string):
 
 def accept_node(sock, _):
     conn, addr = sock.accept()
-    print('accepted', conn, 'from', addr)
+    #print('accepted', conn, 'from', addr)
     conn.setblocking(False)
     sel.register(conn, selectors.EVENT_READ, read_node)
 
 
 def accept_user(sock, _):
     conn, addr = sock.accept()
-    print('accepted', conn, 'from', addr)
+    #print('accepted', conn, 'from', addr)
     conn.setblocking(False)
     sel.register(conn, selectors.EVENT_READ, read_user)
 
@@ -218,8 +218,8 @@ send_message_former_node("chinko")
 while True:
     # ノード用のソケットを登録
     events = sel.select()
-    print(events)
+    #print(events)
     for key, mask in events:
         callback = key.data
-        print(key.data)
+        #print(key.data)
         callback(key.fileobj, mask)
