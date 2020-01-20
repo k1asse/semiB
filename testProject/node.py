@@ -135,6 +135,7 @@ def read_user(conn, _):
         else:
             print('echoing', repr(data), 'to', conn)
             conn.send(data.encode())
+            sel.unregister(conn)
             conn.close()
     else:
         print('closing', conn)

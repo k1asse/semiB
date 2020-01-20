@@ -4,7 +4,7 @@ import selectors
 import sys
 import os
 # ユーザ側のマシンが実行するプログラム
-MAX_NODES= 10  # 最大ノード数
+MAX_NODES = 10  # 最大ノード数
 
 
 def send_message(string):
@@ -105,7 +105,8 @@ sel.register(sock1, selectors.EVENT_READ, accept)
 sel.register(sys.stdin, selectors.EVENT_READ, std_input)
 
 # ノードに接続
-#send_message("hello")
+send_message("hello")
+send_message("hello222")
 
 print("Commands:\nSending money: /send\nCheck transaction history: /history")
 
