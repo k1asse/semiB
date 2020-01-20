@@ -27,9 +27,10 @@ def is_transaction(string):
 
 def make_transaction_instance(string):
     print("transactionクラスのインスタンスを生成します")
-    sender_name = ""
-    receiver_name = ""
-    value = 0
+    #print(string.split(',')[0])
+    sender_name = string.split(',')[0]
+    receiver_name = string.split(',')[1]
+    value = string.split(',')[2]
     return Transaction(sender_name, receiver_name, value)
 
 
@@ -92,7 +93,8 @@ def read_node(conn, _):
             if len(data.split()) > 1 and (int(data.split()[2]) != node_port):
                 send_message_latter_node(data)
             # 取引情報の処理(スレッドの開始)
-            transact(data)
+            # delete "transaction"
+            transact(data[12:])
         elif data.startswith('nonce'):
             # ナンスを発見されたらやめる (スレッドの終了)
             print("nonce")
@@ -124,7 +126,9 @@ def read_user(conn, _):
                 data.replace('transaction', 'transaction from' + str(node_port), 1)
                 send_message_latter_node(data)
                 # 取引情報の処理(スレッドの開始)
-                transact(data)
+                #print(data[12:])
+                # delet "transaction"
+                transact(data[12:])
             else:
                 # 取引情報じゃねえからuserに拒否メッセージを出す
                 print("ユーザからの取引情報を拒否する")
