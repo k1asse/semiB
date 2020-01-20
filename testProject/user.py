@@ -4,7 +4,7 @@ import selectors
 import sys
 import os
 # ユーザ側のマシンが実行するプログラム
-MAX_NODES: int = 10  # 最大ノード数
+MAX_NODES= 10  # 最大ノード数
 
 
 def send_message(string):

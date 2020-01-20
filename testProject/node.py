@@ -7,7 +7,7 @@ import os
 sel = selectors.DefaultSelector()
 args = sys.argv
 NUMBER_OF_ZERO_SEQUENCE = 4
-MAX_NODES: int = 10  # 最大ノード数
+MAX_NODES = 10  # 最大ノード数
 
 if len(args) != 3:
     print("usage: node.py [node port] [user port]")
@@ -187,6 +187,8 @@ def std_input(conn, _):
     if line:
         print("I'll send message: " + line)
         send_message_latter_node(line)
+        sel.unregister(conn)
+        conn.close()
     else:
         print('closing', conn)
         sel.unregister(conn)
