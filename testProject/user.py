@@ -1,4 +1,5 @@
 from transaction import Transaction
+from ecdsa_generator import KeyAddressGenerator
 import socket
 import selectors
 import sys
@@ -82,9 +83,6 @@ def make_transaction(sender, receiver, value):
     trans = "transaction" + ',' + sender + ',' + receiver + ',' + value
     send_message(trans)
     
-    
-
-
 
 sel = selectors.DefaultSelector()
 args = sys.argv
@@ -105,8 +103,12 @@ sel.register(sock1, selectors.EVENT_READ, accept)
 sel.register(sys.stdin, selectors.EVENT_READ, std_input)
 
 # ノードに接続
-send_message("hello")
-send_message("hello222")
+# send_message("hello")
+# send_message("hello222")
+
+# ウォレットの新規作成及び新規アドレスをひとつ追加する
+wallet = KeyAddressGenerator().get_list()
+print(wallet)
 
 print("Commands:\nSending money: /send\nCheck transaction history: /history")
 
