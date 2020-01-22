@@ -27,7 +27,6 @@ def is_transaction(string):
 
 def make_transaction_instance(string):
     print("transactionクラスのインスタンスを生成します")
-    #print(string.split(',')[0])
     sender_name = string.split(',')[0]
     receiver_name = string.split(',')[1]
     value = string.split(',')[2]
@@ -106,6 +105,9 @@ def read_node(conn, _):
             # 送信元が自分なら送らない(作った時はこないけど仕様変更に対応)
             if int(data.split()[2]) != node_port:
                 send_message_former_node("connection_check")
+        elif data.startswith('new_address_key'):
+            # 新しいアドレスと鍵の取得
+            new_address_key(data, 1)
         else:
             print("okasii at read_node()")
         print('echoing', repr(data), 'to', conn)
@@ -126,13 +128,16 @@ def read_user(conn, _):
                 data.replace('transaction', 'transaction from' + str(node_port), 1)
                 send_message_latter_node(data)
                 # 取引情報の処理(スレッドの開始)
-                #print(data[12:])
-                # delet "transaction"
+                # delete "transaction"
                 transact(data[12:])
             else:
                 # 取引情報じゃねえからuserに拒否メッセージを出す
                 print("ユーザからの取引情報を拒否する")
             print('正しく取引を処理しました')
+        elif data.startswith('new_address_key'):
+            # 新しいアドレスと鍵の取得
+            data.replace('new_address_key', 'new_address_key from ' + str(node_port))
+            new_address_key(data, 0)
         elif data == 0:   # ユーザからEOFが送られてきた場合
             sel.unregister(conn)
             conn.close()
@@ -199,6 +204,36 @@ def std_input(conn, _):
         sel.unregister(conn)
         conn.close()
 
+
+def new_address_key(data, port):
+    """
+    送られてきたdataをaddressとpublic_keyに分割し、
+    自分のdictに格納する
+    分割せずに次のポート番号のノードに渡す
+    userからの送信ならばportは0, nodeからの送信ならばportは1になる
+    """
+    print("new_address_key: " + data)
+    tmp_data = data
+    if port == 0:
+        _, address, public_key = tmp_data.split(',')
+        if public_key:
+            # 自分のポート番号を追加して送信する
+            data = data.replace('new_address_key', 'new_address_key from ' + str(node_port))
+            print("new_address_key: " + data)
+            send_message_latter_node(data)
+            address_key_dict[address] = public_key
+    elif port == 1:
+        top, address, public_key = tmp_data.split(',')
+        top = top.replace('new_address_key from ', '')
+        if public_key and top != str(node_port):
+            send_message_latter_node(data)
+            address_key_dict[address] = public_key
+
+    print(address_key_dict)
+
+
+# ユーザのアドレスと公開鍵を紐付けるdict
+address_key_dict = {}
 
 # ノード用のソケット
 sock1 = socket.socket()

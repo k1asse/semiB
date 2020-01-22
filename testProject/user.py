@@ -82,6 +82,17 @@ def make_transaction(sender, receiver, value):
     """
     trans = "transaction" + ',' + sender + ',' + receiver + ',' + value
     send_message(trans)
+
+
+def send_address_public_key(address, public_key):
+    """
+    アドレス作成時にアドレスと公開鍵をノード側に渡す
+    """
+    print("send_address_public_key")
+    send_message("new_address_key," + address + "," + public_key)
+
+
+
     
 
 sel = selectors.DefaultSelector()
@@ -107,8 +118,14 @@ sel.register(sys.stdin, selectors.EVENT_READ, std_input)
 # send_message("hello222")
 
 # ウォレットの新規作成及び新規アドレスをひとつ追加する
-wallet = KeyAddressGenerator().get_list()
-print(wallet)
+wallet = []
+
+wallet.append(KeyAddressGenerator().get_list())
+# 新しいアドレス・公開鍵をノード側に伝えておく
+send_address_public_key(wallet[0][2], wallet[0][1])
+
+
+
 
 print("Commands:\nSending money: /send\nCheck transaction history: /history")
 
