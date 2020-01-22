@@ -1,13 +1,16 @@
-from transaction import Transaction
 import socket
 import selectors
 import sys
+import json
+import time
 import os
+import hashlib
 
 sel = selectors.DefaultSelector()
 args = sys.argv
 NUMBER_OF_ZERO_SEQUENCE = 4
 MAX_NODES = 10  # 最大ノード数
+blockchain = []
 
 if len(args) != 3:
     print("usage: node.py [node port] [user port]")
@@ -30,16 +33,64 @@ def make_transaction_instance(string):
     sender_name = string.split(',')[0]
     receiver_name = string.split(',')[1]
     value = string.split(',')[2]
-    return Transaction(sender_name, receiver_name, value)
+    transaction = {
+    	"sender" : sender_name,
+    	"receiver" : receiver_name,
+    	"value" : value,
+    }
+    return transaction
+    #return Transaction(sender_name, receiver_name, value)
 
 
-def assign_nonce(transaction):
+def assign_nonce(block):
     """
     ナンスを代入する、0が先頭にNUMBER_OF_ZERO_SEQUENCE個来たらノード全体に送信
     """
     print("ナンスを代入します\n")
+    block_head = {
+        'index' : block['index'],
+        'timestamp' : block['timestamp'],
+        'proof' : 0,
+        'previous_hash' : block['previous_hash'],
+        'Merkle_Root' : block['Merkle_Root'],
+    }
+    flag = True
+    while flag:
+        block_head['proof'] = block_head['proof'] + 1
+        tmp = hash_block_head(block_head)
+        for i in range(NUMBER_OF_ZERO_SEQUENCE):
+            if tmp[i] != '0':
+                break
+            if i == NUMBER_OF_ZERO_SEQUENCE - 1:
+                flag = False
     # ナンスができたらそれをノード全体に送信する
     # だるい!!!
+
+def generate_first_block():
+    """
+    初期ブロックを生成する
+    """
+    print("初期ブロックを生成します\n")
+    first_transaction = {
+        'sender' : "hoge",
+        'receiver' : "hoge",
+        'value' : 0,
+    }
+    block = {
+        'index' : 0,
+        'timestamp' : time.time(),
+        'transaction' :{
+            'sender' : "hoge",
+            'receiver' : "hoge",
+            'value' : 0,
+        },
+        'proof' : 0,
+        'previous_hash' : "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        'Merkle_Root' : hash_transaction(first_transaction),
+    }
+   
+
+    blockchain.append(block)
 
 
 def generate_block(transaction):
@@ -47,7 +98,32 @@ def generate_block(transaction):
     ブロックを生成する
     """
     print("ブロックを生成します\n")
+    previous_block = blockchain[len(blockchain) - 1]
+    block = {
+        'index' : blockchain[len(blockchain) - 1]['index'] + 1,
+        'timestamp' : time.time(),
+        'transaction' :{
+            'sender' : transaction['sender'],
+            'receiver' : transaction['receiver'],
+            'value' : transaction['value'],
+        },
+        'proof' : 0,
+        'previous_hash' : hash_block(previous_block),
+        'Merkle_Root' : hash_transaction(transaction),
+    }
+    return block
 
+def hash_block(block):
+	block_string = json.dumps(block,sort_keys=True).encode()
+	return hashlib.sha256(block_string).hexdigest()
+
+def hash_block_head(block_head):
+	block_head_string = json.dumps(block_head,sort_keys=True).encode()
+	return hashlib.sha256(block_head_string).hexdigest()
+
+def hash_transaction(transaction):
+    transaction_string = json.dumps(transaction,sort_keys=True).encode()
+    return hashlib.sha256(transaction_string).hexdigest()
 
 def send_result(transaction, conn):
     """
@@ -62,10 +138,11 @@ def transact(string):
     # これサブのスレッドでやらんとしんどい(ソケット監視ができない)
     # トランザクションのインスタンスを作る
     transaction = make_transaction_instance(string)
-    # ナンスを代入し始める
-    assign_nonce(transaction)
     # ブロックを生成する(TODO ブロック中の取引情報数を1として考えてるので複数に変更)
-    generate_block(transaction)
+    block = generate_block(transaction)
+    # ナンスを代入し始める
+    assign_nonce(block)
+    
 
 
 def accept_node(sock, _):
@@ -254,6 +331,8 @@ sel.register(sys.stdin, selectors.EVENT_READ, std_input)
 
 # TODO 起動時に一つ前ポート番号args[2]のソケットに接続要求を出す(args[2]が10000ならしない)
 send_message_former_node("chinko")
+generate_first_block()
+
 
 while True:
     # ノード用のソケットを登録
