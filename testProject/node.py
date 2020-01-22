@@ -52,6 +52,7 @@ def assign_nonce(block):
         'timestamp' : block['timestamp'],
         'proof' : 0,
         'previous_hash' : block['previous_hash'],
+        'Merkle_Root' : block['Merkle_Root'],
     }
     flag = True
     while flag:
@@ -70,6 +71,11 @@ def generate_first_block():
     初期ブロックを生成する
     """
     print("初期ブロックを生成します\n")
+    first_transaction = {
+        'sender' : "hoge",
+        'receiver' : "hoge",
+        'value' : 0,
+    }
     block = {
         'index' : 0,
         'timestamp' : time.time(),
@@ -80,6 +86,7 @@ def generate_first_block():
         },
         'proof' : 0,
         'previous_hash' : "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        'Merkle_Root' : hash_transaction(first_transaction),
     }
    
 
@@ -102,16 +109,21 @@ def generate_block(transaction):
         },
         'proof' : 0,
         'previous_hash' : hash_block(previous_block),
+        'Merkle_Root' : hash_transaction(transaction),
     }
     return block
 
-def  hash_block(block):
+def hash_block(block):
 	block_string = json.dumps(block,sort_keys=True).encode()
 	return hashlib.sha256(block_string).hexdigest()
 
-def  hash_block_head(block_head):
+def hash_block_head(block_head):
 	block_head_string = json.dumps(block_head,sort_keys=True).encode()
 	return hashlib.sha256(block_head_string).hexdigest()
+
+def hash_transaction(transaction):
+    transaction_string = json.dumps(transaction,sort_keys=True).encode()
+    return hashlib.sha256(transaction_string).hexdigest()
 
 def send_result(transaction, conn):
     """
