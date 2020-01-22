@@ -57,7 +57,9 @@ class KeyAddressGenerator():
         return self.private_key, self.public_key, self.address
 
 
-address = KeyAddressGenerator()
-
-
+pri_key, pub_key, addr = KeyAddressGenerator().get_list()
+sk = ecdsa.SigningKey.from_string(bytes.fromhex(pri_key), curve=ecdsa.SECP256k1)
+vk = ecdsa.VerifyingKey.from_string(bytes.fromhex(pub_key.replace('04', '', 1)), curve=ecdsa.SECP256k1)
+signature = sk.sign(b"message")
+assert vk.verify(signature, b"message")
 
