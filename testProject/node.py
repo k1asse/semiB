@@ -53,12 +53,15 @@ def assign_nonce(block):
         'proof' : 0,
         'previous_hash' : block['previous_hash'],
     }
-    while True:
+    flag = True
+    while flag:
         block_head['proof'] = block_head['proof'] + 1
         tmp = hash_block_head(block_head)
-        if tmp.startswith('0000'):
-        	print(tmp)
-        	break
+        for i in range(NUMBER_OF_ZERO_SEQUENCE):
+            if tmp[i] != '0':
+                break
+            if i == NUMBER_OF_ZERO_SEQUENCE - 1:
+                flag = False
     # ナンスができたらそれをノード全体に送信する
     # だるい!!!
 
