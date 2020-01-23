@@ -1,6 +1,7 @@
 import json
 import hashlib
 import ecdsa
+import pprint
 from ecdsa_generator import KeyAddressGenerator
 
 
@@ -8,7 +9,7 @@ class Transaction:
     """取引情報を記憶するクラス"""
 
     def __init__(self):
-        self.version = 0x0000
+        self.version = "0000"
         self.inputs = []
         self.outputs = []
 
@@ -54,14 +55,13 @@ class Transaction:
             # jsonをバイナリに変換してからsha256^2
             digest_a = hashlib.sha256(hashlib.sha256(self.get_json().encode()).digest()).digest()
             sk = ecdsa.SigningKey.from_string(bytes.fromhex(prv_key), curve=ecdsa.SECP256k1)
-            # 最後、代入
-            self.inputs[0].signature = sk.sign(digest_a)
+            # 最後、代入 signatureはバイト列から16進数に変換して保存(JSONにする際バイナリだとできない)
+            self.inputs[0].signature = sk.sign(digest_a).hex()
             self.inputs[0].public_key = pub_key
-            # print(digest_a)
 
     def check_signature(self):
         # 署名と公開鍵を取り出す
-        signature = self.inputs[0].signature
+        signature = bytes.fromhex(self.inputs[0].signature)
         public_key = self.inputs[0].public_key
         self.inputs[0].public_key = None
 
@@ -131,6 +131,7 @@ transaction.add_output(200, 'key_hash')
 print(transaction.get_dictionary())
 pri_key, pub_key, addr = KeyAddressGenerator().get_list()
 transaction.assign_signature(pub_key, pri_key)
-# transaction.version = 0x0001
+# transaction.version = "0001"
+pprint.pprint(transaction.get_json())
 transaction.check_signature()
 

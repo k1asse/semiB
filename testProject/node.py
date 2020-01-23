@@ -5,7 +5,6 @@ import json
 import time
 import threading
 import os
-import Nonce_thread
 import hashlib
 
 sel = selectors.DefaultSelector()
@@ -72,10 +71,11 @@ def assign_nonce(block):
     # ナンスができたらそれをノード全体に送信する
     # だるい!!!
     if first:
-        right_block_head = json.dumps(block_head,sort_keys=True)
+        right_block_head = json.dumps(block_head, sort_keys=True)
         right_block_head = 'nonce' + ',' + right_block_head
         send_message_latter_node(right_block_head)
         print("ナンスを見つけました")
+
 
 def generate_first_block():
     """
