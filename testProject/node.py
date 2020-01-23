@@ -3,7 +3,9 @@ import selectors
 import sys
 import json
 import time
+import threading
 import os
+import Nonce_thread
 import hashlib
 
 sel = selectors.DefaultSelector()
@@ -11,6 +13,7 @@ args = sys.argv
 NUMBER_OF_ZERO_SEQUENCE = 4
 MAX_NODES = 10  # 最大ノード数
 blockchain = []
+global first
 
 if len(args) != 3:
     print("usage: node.py [node port] [user port]")
@@ -46,6 +49,8 @@ def assign_nonce(block):
     """
     ナンスを代入する、0が先頭にNUMBER_OF_ZERO_SEQUENCE個来たらノード全体に送信
     """
+    global first
+    first = True
     print("ナンスを代入します\n")
     block_head = {
         'index' : block['index'],
@@ -54,6 +59,7 @@ def assign_nonce(block):
         'previous_hash' : block['previous_hash'],
         'Merkle_Root' : block['Merkle_Root'],
     }
+    # ナンスをインクリメントしながらブロックヘッドのハッシュ値を計算
     flag = True
     while flag:
         block_head['proof'] = block_head['proof'] + 1
@@ -65,6 +71,11 @@ def assign_nonce(block):
                 flag = False
     # ナンスができたらそれをノード全体に送信する
     # だるい!!!
+    if first:
+        right_block_head = json.dumps(block_head,sort_keys=True)
+        right_block_head = 'nonce' + ',' + right_block_head
+        send_message_latter_node(right_block_head)
+        print("ナンスを見つけました")
 
 def generate_first_block():
     """
@@ -88,8 +99,6 @@ def generate_first_block():
         'previous_hash' : "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
         'Merkle_Root' : hash_transaction(first_transaction),
     }
-   
-
     blockchain.append(block)
 
 
@@ -164,15 +173,26 @@ def read_node(conn, _):
     # ここの分岐をconn, dataによって行う
     if data:
         if data.startswith('transaction'):
+       	    thread = threading.Thread(target=transact,args=([data[12:]]))
+       	    #global event
+       	    #event = threading.Event()
+            #nonce_thread = Nonce_thread.Nonce_thread(thread)
             # 小さいポート番号を持つノードから取引情報がきた時
             # 送信元が自分なら送らない(
             if len(data.split()) > 1 and (int(data.split()[2]) != node_port):
                 send_message_latter_node(data)
             # 取引情報の処理(スレッドの開始)
             # delete "transaction"
-            transact(data[12:])
+            # transact(data[12:])
+            # 取引情報は同時に一個しか来ない前提
+            # 複数に対応するならスレッドをリスト化かして複数保持させる
+            #thread = threading.Thread(target=transact,args=([data[12:]]))
+            thread.start()
         elif data.startswith('nonce'):
             # ナンスを発見されたらやめる (スレッドの終了)
+            #event.wait()
+            global first
+            first = False
             print("nonce")
             # ナンスがあってるか確認する
 
@@ -187,7 +207,7 @@ def read_node(conn, _):
             new_address_key(data, 1)
         else:
             print("okasii at read_node()")
-        print('echoing', repr(data), 'to', conn)
+        #print('echoing', repr(data), 'to', conn)
     else:
         print('closing', conn)
         sel.unregister(conn)
@@ -199,6 +219,10 @@ def read_user(conn, _):
     # ここの分岐をconn, dataによって行う
     if data:
         if data.startswith('transaction'):
+            thread = threading.Thread(target=transact,args=([data[12:]]))
+            #global event
+            #event = threading.Event()
+            #nonce_thread = Nonce_thread.Nonce_thread(thread)
             # 文字列のチェック
             if is_transaction(data):
                 # この文字列をそのまま次のノードに送る
@@ -206,7 +230,10 @@ def read_user(conn, _):
                 send_message_latter_node(data)
                 # 取引情報の処理(スレッドの開始)
                 # delete "transaction"
-                transact(data[12:])
+                # transact(data[12:])
+                thread.start()
+                # 取引情報は同時に一個しか来ない前提
+                # 複数に対応するならスレッドをリスト化かして複数保持させる
             else:
                 # 取引情報じゃねえからuserに拒否メッセージを出す
                 print("ユーザからの取引情報を拒否する")
@@ -219,7 +246,7 @@ def read_user(conn, _):
             sel.unregister(conn)
             conn.close()
         else:
-            print('echoing', repr(data), 'to', conn)
+            #print('echoing', repr(data), 'to', conn)
             conn.send(data.encode())
             sel.unregister(conn)
             conn.close()
