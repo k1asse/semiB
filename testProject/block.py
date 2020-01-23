@@ -47,6 +47,9 @@ class Block:
             dictionary['transactions']['transaction' + str(index)] = item.get_dictionary()
         return dictionary
 
+    def get_header_hash(self):
+        return self.header.get_hash()
+
     def get_merkle_root(self, trans_list):
         """トランザクションのリストをmerkle treeにしてそのrootを得る"""
         # Transactionクラスのインスタンスで構成されたtrans_listを
