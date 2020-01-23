@@ -10,7 +10,7 @@ https://qiita.com/kaz1shuu2/items/921dcbebb7fbea14f085
 """
 
 
-class KeyAddressGenerator():
+class KeyAddressGenerator:
     def __init__(self):
         self.private_key, self.public_key, self.address = self.generate()
 

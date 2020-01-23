@@ -13,8 +13,12 @@ class Transaction:
         self.outputs = []
 
     def get_json(self):
-        """1回辞書型に変換して、jsonファイルを取得する"""
+        """1回辞書型に変換して、jsonを取得する"""
         return json.dumps(self.get_dictionary())
+
+    def get_json_binary(self):
+        """jsonのバイナリ形式を取得する(hash化する際に利用)"""
+        return self.get_json().encode()
 
     def get_dictionary(self):
         """Transactionのデータを辞書型に変換する"""
@@ -38,14 +42,14 @@ class Transaction:
 
     def assign_signature(self, pub_key, prv_key):
         """送信元の公開鍵pub_keyを用いて、signとpub_keyを埋める"""
-        print(pub_key)
+        # print(pub_key)
         #
         if len(self.inputs) > 0 and not self.inputs[0].exist_sign_and_pub_key():
             # 署名前のテンプレを作る
             h = hashlib.new('ripemd160')
             h.update(hashlib.sha256(pub_key.encode()).digest())
             self.inputs[0].signature = h.hexdigest()
-            print(self.inputs[0].get_dictionary())
+            # print(self.inputs[0].get_dictionary())
             # 二重ハッシュをかけてダイジェストAを作る
             # jsonをバイナリに変換してからsha256^2
             digest_a = hashlib.sha256(hashlib.sha256(self.get_json().encode()).digest()).digest()
@@ -53,7 +57,7 @@ class Transaction:
             # 最後、代入
             self.inputs[0].signature = sk.sign(digest_a)
             self.inputs[0].public_key = pub_key
-            print(digest_a)
+            # print(digest_a)
 
     def check_signature(self):
         # 署名と公開鍵を取り出す
@@ -66,19 +70,16 @@ class Transaction:
         h.update(hashlib.sha256(public_key.encode()).digest())
         self.inputs[0].signature = h.hexdigest()
 
-        print(self.inputs[0].get_dictionary())
+        # print(self.inputs[0].get_dictionary())
 
         # 二重ハッシュをかけてダイジェストBを作る
         # jsonをバイナリに変換してからsha256^2
         digest_b = hashlib.sha256(hashlib.sha256(self.get_json().encode()).digest()).digest()
-        print(digest_b)
+        # print(digest_b)
 
         # 公開鍵を用いて
         vk = ecdsa.VerifyingKey.from_string(bytes.fromhex(public_key.replace('04', '', 1)), curve=ecdsa.SECP256k1)
         assert vk.verify(signature, digest_b)
-
-
-
 
 
 class Input:

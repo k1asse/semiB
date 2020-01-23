@@ -92,9 +92,6 @@ def send_address_public_key(address, public_key):
     send_message("new_address_key," + address + "," + public_key)
 
 
-
-    
-
 sel = selectors.DefaultSelector()
 args = sys.argv
 
