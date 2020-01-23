@@ -40,7 +40,7 @@ def accept(sock, _):
 
 
 def read(conn, _):
-    data = conn.recv(1000).decode()
+    data = conn.recv(4096).decode()
     # ここの分岐をconn, dataによって行う
     if data:
         print('echoing', repr(data), 'to', conn)

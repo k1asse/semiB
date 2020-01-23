@@ -169,7 +169,7 @@ def accept_user(sock, _):
 
 
 def read_node(conn, _):
-    data = conn.recv(1000).decode()
+    data = conn.recv(4096).decode()
     # ここの分岐をconn, dataによって行う
     if data:
         if data.startswith('transaction'):
@@ -215,7 +215,7 @@ def read_node(conn, _):
 
 
 def read_user(conn, _):
-    data = conn.recv(1000).decode()
+    data = conn.recv(4096).decode()
     # ここの分岐をconn, dataによって行う
     if data:
         if data.startswith('transaction'):
