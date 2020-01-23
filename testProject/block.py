@@ -2,6 +2,7 @@ import json
 import hashlib
 import merkletools
 import time
+import pprint
 from transaction import Transaction
 
 
@@ -41,10 +42,10 @@ class Block:
         dictionary = {
             'header': self.header.get_dictionary(),
             'transaction_number': len(self.transaction_list),
-            'transactions': {}
+            'transactions': []
         }
         for index, item in enumerate(self.transaction_list):
-            dictionary['transactions']['transaction' + str(index)] = item.get_dictionary()
+            dictionary['transactions'].append(item.get_dictionary())
         return dictionary
 
     def get_header_hash(self):
@@ -107,7 +108,7 @@ transaction2.add_input('prehash4', 'index4', 'sig4', 'pub_key4')
 transaction2.add_output(22020200, 'key_hash')
 
 block = Block("pre_hash", "target", "nonce", [transaction, transaction2])
-
-print(transaction.get_dictionary())
+# pprint.pprint(block.get_dictionary())
+# pprint.pprint(transaction.get_dictionary())
 data = json.loads(block.get_json())
 print(json.dumps(data, indent=2))

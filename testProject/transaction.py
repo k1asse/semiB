@@ -26,13 +26,13 @@ class Transaction:
         dictionary = {'version': self.version,
                       'input_number': len(self.inputs),
                       'output_number': len(self.outputs),
-                      'inputs': {},
-                      'outputs': {}
+                      'inputs': [],
+                      'outputs': []
                       }
         for index, item in enumerate(self.inputs):
-            dictionary['inputs']['input' + str(index)] = item.get_dictionary()
+            dictionary['inputs'].append(item.get_dictionary())
         for index, item in enumerate(self.outputs):
-            dictionary['outputs']['output' + str(index)] = item.get_dictionary()
+            dictionary['outputs'].append(item.get_dictionary())
         return dictionary
 
     def add_input(self, pre_hash, index, signature, pub_key):
