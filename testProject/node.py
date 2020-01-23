@@ -174,19 +174,13 @@ def read_node(conn, _):
     if data:
         if data.startswith('transaction'):
        	    thread = threading.Thread(target=transact,args=([data[12:]]))
-       	    #global event
-       	    #event = threading.Event()
-            #nonce_thread = Nonce_thread.Nonce_thread(thread)
             # 小さいポート番号を持つノードから取引情報がきた時
             # 送信元が自分なら送らない(
             if len(data.split()) > 1 and (int(data.split()[2]) != node_port):
                 send_message_latter_node(data)
             # 取引情報の処理(スレッドの開始)
-            # delete "transaction"
-            # transact(data[12:])
             # 取引情報は同時に一個しか来ない前提
             # 複数に対応するならスレッドをリスト化かして複数保持させる
-            #thread = threading.Thread(target=transact,args=([data[12:]]))
             thread.start()
         elif data.startswith('nonce'):
             # ナンスを発見されたらやめる (スレッドの終了)
@@ -195,7 +189,13 @@ def read_node(conn, _):
             first = False
             print("nonce")
             # ナンスがあってるか確認する
-
+            nonce_check = json.loads(data[6:])
+            nonce_check_hash = hash_block_head(nonce_check)
+            for i in range(NUMBER_OF_ZERO_SEQUENCE):
+            	if nonce_check_hash[i] != '0':
+            		print("ナンスは間違っています")
+            	elif i == NUMBER_OF_ZERO_SEQUENCE -1:
+                    print("ナンスは正しいです")
         elif data.startswith('connection_check'):
             # 大きいポート番号をもつノードから接続確認がきた時
             print("connection_check")
@@ -220,17 +220,12 @@ def read_user(conn, _):
     if data:
         if data.startswith('transaction'):
             thread = threading.Thread(target=transact,args=([data[12:]]))
-            #global event
-            #event = threading.Event()
-            #nonce_thread = Nonce_thread.Nonce_thread(thread)
             # 文字列のチェック
             if is_transaction(data):
                 # この文字列をそのまま次のノードに送る
                 data.replace('transaction', 'transaction from' + str(node_port), 1)
                 send_message_latter_node(data)
                 # 取引情報の処理(スレッドの開始)
-                # delete "transaction"
-                # transact(data[12:])
                 thread.start()
                 # 取引情報は同時に一個しか来ない前提
                 # 複数に対応するならスレッドをリスト化かして複数保持させる
