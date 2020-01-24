@@ -50,6 +50,10 @@ class Block:
     def get_header_hash(self):
         return self.header.get_hash()
 
+    def get_hash(self):
+        return hashlib.sha256(hashlib.sha256(self.get_json_binary()).digest()).digest()
+
+
     def get_merkle_root(self, trans_list):
         """トランザクションのリストをmerkle treeにしてそのrootを得る"""
         # Transactionクラスのインスタンスで構成されたtrans_listを
@@ -66,7 +70,6 @@ class Block:
 
     def set_nonce(self, nonce):
         self.header.nonce = nonce
-
 
 
 class BlockHeader:

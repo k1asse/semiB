@@ -42,6 +42,15 @@ class BlockChain:
         else:
             return self.chain[-1].get_header_hash()
 
+    def get_tail_block_hash(self):
+        """ブロックチェーンの末尾ブロックのハッシュを取得する"""
+        if len(self.chain) == 0:
+            return None
+        else:
+            return self.chain[-1].get_hash()
+
+
+
 
 transaction = Transaction()
 transaction.add_input('prehash', 'index', None, None)

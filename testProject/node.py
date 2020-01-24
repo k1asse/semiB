@@ -197,6 +197,7 @@ def transact(string):
     # トランザクションのインスタンスを作る
     transaction = make_transaction_instance(string)
     # ブロックを生成する(TODO ブロック中の取引情報数を1として考えてるので複数に変更)
+    # print("おい前のブロックのハッシュ" + str(block_chain.get_tail_block_hash().hex()))
     block = generate_block("pre_hash", [transaction])
     # ナンスを代入し始める
     assign_nonce(block)
