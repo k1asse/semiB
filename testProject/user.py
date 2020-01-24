@@ -1,4 +1,5 @@
 import hashlib
+import json
 
 from transaction import Transaction
 from ecdsa_generator import KeyAddressGenerator
@@ -70,6 +71,8 @@ def std_input(conn, _):
         if line == '/send':
             print("/send money")
             transaction = make_transaction_from_std()
+            send_message("transaction " + transaction.get_json())
+
             # pprint.pprint(transaction.get_dictionary())
         elif line == '/history':
             print("/history")

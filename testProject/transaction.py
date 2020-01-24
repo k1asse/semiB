@@ -13,6 +13,18 @@ class Transaction:
         self.inputs = []
         self.outputs = []
 
+    @classmethod
+    def from_json(cls, json_str):
+        """jsonからtransactionクラスを生成する"""
+        trans = Transaction()
+        dictionary = json.loads(json_str)
+        for item in dictionary["inputs"]:
+            trans.add_input(item["previous_hash"], item["output_index"], item["signature"], item["public_key"])
+        for item in dictionary["outputs"]:
+            trans.add_output(item["value"], item["receiver_public_key_hash"])
+        pprint.pprint(dictionary)
+        return trans
+
     def get_json(self):
         """1回辞書型に変換して、jsonを取得する"""
         return json.dumps(self.get_dictionary())
@@ -35,8 +47,8 @@ class Transaction:
             dictionary['outputs'].append(item.get_dictionary())
         return dictionary
 
-    def add_input(self, pre_hash, index):
-        self.inputs.append(Input(pre_hash, index))
+    def add_input(self, pre_hash, index, signature=None, pub_key=None):
+        self.inputs.append(Input(pre_hash, index, signature, pub_key))
 
     def add_output(self, value, pub_key_hash):
         self.outputs.append(Output(value, pub_key_hash))
@@ -85,11 +97,11 @@ class Transaction:
 class Input:
     """トランザクションの入力部分"""
 
-    def __init__(self, pre_hash, index):
+    def __init__(self, pre_hash, index, signature=None, pub_key=None):
         self.previous_hash = pre_hash
         self.output_index = index
-        self.signature = None
-        self.public_key = None
+        self.signature = signature
+        self.public_key = pub_key
 
     def get_dictionary(self):
         """入力のデータを辞書型に変換する"""

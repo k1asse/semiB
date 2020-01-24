@@ -1,3 +1,4 @@
+import pprint
 import socket
 import selectors
 import sys
@@ -7,12 +8,19 @@ import threading
 import os
 import hashlib
 
+from ecdsa_generator import KeyAddressGenerator
+from transaction import Transaction
+from block import Block, BlockHeader
+from blockchain import BlockChain
+
+
 sel = selectors.DefaultSelector()
 args = sys.argv
 NUMBER_OF_ZERO_SEQUENCE = 4
 MAX_NODES = 10  # 最大ノード数
 BUF_SIZE = 2048
 blockchain = []
+block_chain = BlockChain()
 global first
 
 if len(args) != 3:
@@ -33,25 +41,36 @@ def is_transaction(string):
 
 def make_transaction_instance(string):
     print("transactionクラスのインスタンスを生成します")
-    sender_name = string.split(',')[0]
-    receiver_name = string.split(',')[1]
-    value = string.split(',')[2]
-    transaction = {
-    	"sender" : sender_name,
-    	"receiver" : receiver_name,
-    	"value" : value,
-    }
+    # sender_name = string.split(',')[0]
+    # receiver_name = string.split(',')[1]
+    # value = string.split(',')[2]
+    # transaction = {
+    # 	"sender" : sender_name,
+    # 	"receiver" : receiver_name,
+    # 	"value" : value,
+    # }
+    transaction = Transaction()
+    dictionary = json.loads(string)
+    for item in dictionary["inputs"]:
+        transaction.add_input(item["previous_hash"], item["output_index"], item["signature"], item["public_key"])
+    for item in dictionary["outputs"]:
+        transaction.add_output(item["value"], item["receiver_public_key_hash"])
+
+    pprint.pprint(transaction.get_dictionary())
+
     return transaction
-    #return Transaction(sender_name, receiver_name, value)
+    # return Transaction(sender_name, receiver_name, value)
 
 
 def assign_nonce(block):
     """
     ナンスを代入する、0が先頭にNUMBER_OF_ZERO_SEQUENCE個来たらノード全体に送信
+    引数のblockはチェーンの末尾
     """
     global first
     first = True
     print("ナンスを代入します\n")
+    """
     block_head = {
         'index' : block['index'],
         'timestamp' : block['timestamp'],
@@ -59,11 +78,17 @@ def assign_nonce(block):
         'previous_hash' : block['previous_hash'],
         'Merkle_Root' : block['Merkle_Root'],
     }
+    """
+    proof = 0
     # ナンスをインクリメントしながらブロックヘッドのハッシュ値を計算
     flag = True
     while flag:
-        block_head['proof'] = block_head['proof'] + 1
-        tmp = hash_block_head(block_head)
+        # print("assign")
+        proof += 1
+        block.set_nonce(proof)  # ブロックにナンスをセット
+        # print(json.dumps(json.loads(block.header.get_json()), indent=2))
+        tmp = str(block.get_header_hash().hex())   # ブロックヘッダのハッシュを取得
+        # print("tmp: " + str(tmp))
         for i in range(NUMBER_OF_ZERO_SEQUENCE):
             if tmp[i] != '0':
                 break
@@ -72,17 +97,21 @@ def assign_nonce(block):
     # ナンスができたらそれをノード全体に送信する
     # だるい!!!
     if first:
-        right_block_head = json.dumps(block_head, sort_keys=True)
-        right_block_head = 'nonce' + ',' + right_block_head
-        send_message_latter_node(right_block_head)
-        print("ナンスを見つけました")
+        correct_block_head_str = 'nonce,' + block.header.get_json()
+        send_message_latter_node(correct_block_head_str)
+
+        print("ナンスを見つけました ")
+        print("nonce: " + str(proof))
+        print("header_hash: " + str(tmp))
 
 
 def generate_first_block():
     """
-    初期ブロックを生成する
+    初期ブロックを生成し、ブロックチェーン(BlockChainクラス)に加える
+    一度だけ実行される
     """
-    print("初期ブロックを生成します\n")
+    print("初期ブロックを生成します")
+    """
     first_transaction = {
         'sender' : "hoge",
         'receiver' : "hoge",
@@ -101,13 +130,26 @@ def generate_first_block():
         'Merkle_Root' : hash_transaction(first_transaction),
     }
     blockchain.append(block)
-
-
-def generate_block(transaction):
     """
-    ブロックを生成する
+
+    # クラス化によるコードの変更
+    # 適当なトランザクション
+    transaction = Transaction()
+    # 適当なブロック
+    block = Block("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef", NUMBER_OF_ZERO_SEQUENCE, [transaction])
+    block_chain.add_block(block)
+    print("初期ブロックの生成が完了しました")
+
+
+def generate_block(pre_hash, transaction_list):
+    """
+    ブロックを生成し、ブロックチェーン(BlockChainクラス)に加える
+    前のブロックのハッシュ(pre_hash)と、トランザクションリストは確定
+    この生成を終えてからassign_nonceでnonceを発見していく
+    その時の困難度(target= NUMBER_OF_ZERO_SEQUENCE)
     """
     print("ブロックを生成します\n")
+    """
     previous_block = blockchain[len(blockchain) - 1]
     block = {
         'index' : blockchain[len(blockchain) - 1]['index'] + 1,
@@ -121,19 +163,25 @@ def generate_block(transaction):
         'previous_hash' : hash_block(previous_block),
         'Merkle_Root' : hash_transaction(transaction),
     }
+    """
+    block = Block(pre_hash, NUMBER_OF_ZERO_SEQUENCE, transaction_list)
     return block
+
 
 def hash_block(block):
 	block_string = json.dumps(block,sort_keys=True).encode()
 	return hashlib.sha256(block_string).hexdigest()
 
+
 def hash_block_head(block_head):
 	block_head_string = json.dumps(block_head,sort_keys=True).encode()
 	return hashlib.sha256(block_head_string).hexdigest()
 
+
 def hash_transaction(transaction):
     transaction_string = json.dumps(transaction,sort_keys=True).encode()
     return hashlib.sha256(transaction_string).hexdigest()
+
 
 def send_result(transaction, conn):
     """
@@ -149,7 +197,7 @@ def transact(string):
     # トランザクションのインスタンスを作る
     transaction = make_transaction_instance(string)
     # ブロックを生成する(TODO ブロック中の取引情報数を1として考えてるので複数に変更)
-    block = generate_block(transaction)
+    block = generate_block("pre_hash", [transaction])
     # ナンスを代入し始める
     assign_nonce(block)
     
@@ -179,15 +227,24 @@ def read_node(conn, _):
     # ここの分岐をconn, dataによって行う
     if data:
         if data.startswith('transaction'):
-       	    thread = threading.Thread(target=transact,args=([data[12:]]))
-            # 小さいポート番号を持つノードから取引情報がきた時
-            # 送信元が自分なら送らない(
-            if len(data.split()) > 1 and (int(data.split()[2]) != node_port):
+            if data.startswith('transaction from'):
+                if int(data.split()[2]) != node_port:
+                    thread = threading.Thread(target=transact, args=([data[23:]]))
+                    send_message_latter_node(data)
+                    # 取引情報の処理(スレッドの開始)
+                    # 取引情報は同時に一個しか来ない前提
+                    # 複数に対応するならスレッドをリスト化かして複数保持させる
+                    thread.start()
+                else:
+                    pass    # 自分が送ってきたものなら何もしない
+            else:
+                thread = threading.Thread(target=transact, args=([data[12:]]))
                 send_message_latter_node(data)
-            # 取引情報の処理(スレッドの開始)
-            # 取引情報は同時に一個しか来ない前提
-            # 複数に対応するならスレッドをリスト化かして複数保持させる
-            thread.start()
+                # 取引情報の処理(スレッドの開始)
+                # 取引情報は同時に一個しか来ない前提
+                # 複数に対応するならスレッドをリスト化かして複数保持させる
+                thread.start()
+
         elif data.startswith('nonce'):
             # ナンスを発見されたらやめる (スレッドの終了)
             #event.wait()
@@ -195,13 +252,18 @@ def read_node(conn, _):
             first = False
             print("nonce")
             # ナンスがあってるか確認する
-            nonce_check = json.loads(data[6:])
-            nonce_check_hash = hash_block_head(nonce_check)
-            for i in range(NUMBER_OF_ZERO_SEQUENCE):
-            	if nonce_check_hash[i] != '0':
-            		print("ナンスは間違っています")
-            	elif i == NUMBER_OF_ZERO_SEQUENCE -1:
-                    print("ナンスは正しいです")
+            header = BlockHeader.from_json(data[6:])
+            nonce_check_hash = header.get_hash().hex()
+            # nonce_check = json.loads(data[6:])
+            # nonce_check_hash = hash_block_head(nonce_check)
+            if header.target == NUMBER_OF_ZERO_SEQUENCE:
+                for i in range(NUMBER_OF_ZERO_SEQUENCE):
+                    if nonce_check_hash[i] != '0':
+                        print("ナンスは間違っています")
+                    elif i == NUMBER_OF_ZERO_SEQUENCE - 1:
+                        print("ナンスは正しいです")
+            else:
+                print("ヘッダのターゲットが違います")
         elif data.startswith('connection_check'):
             # 大きいポート番号をもつノードから接続確認がきた時
             print("connection_check")
@@ -212,7 +274,7 @@ def read_node(conn, _):
             # 新しいアドレスと鍵の取得
             new_address_key(data, 1)
         else:
-            print("size: " + len(data) + "str: " + data)
+            print("size: " + str(len(data)) + " str: " + data)
             print("okasii at read_node()")
         #print('echoing', repr(data), 'to', conn)
     else:
@@ -231,11 +293,12 @@ def read_user(conn, _):
     # ここの分岐をconn, dataによって行う
     if data:
         if data.startswith('transaction'):
-            thread = threading.Thread(target=transact,args=([data[12:]]))
+            thread = threading.Thread(target=transact, args=([data[12:]]))
             # 文字列のチェック
             if is_transaction(data):
                 # この文字列をそのまま次のノードに送る
-                data.replace('transaction', 'transaction from' + str(node_port), 1)
+                data = data.replace('transaction', 'transaction from ' + str(node_port), 1)
+                print("うおおおおおおおお" + data)
                 send_message_latter_node(data)
                 # 取引情報の処理(スレッドの開始)
                 thread.start()

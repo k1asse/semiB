@@ -53,7 +53,7 @@ transaction2.add_input('prehas3', 'index', None, None)
 transaction2.add_input('prehash4', 'index4', 'sig4', 'pub_key4')
 transaction2.add_output(22020200, 'key_hash')
 
-block = Block("pre_hash", "target", "nonce", [transaction, transaction2])
+block = Block("pre_hash", "target", [transaction, transaction2])
 block_chain = BlockChain()
 block_chain.add_block(block)
 block_chain.add_block(block)
