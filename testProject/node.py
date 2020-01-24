@@ -11,7 +11,7 @@ sel = selectors.DefaultSelector()
 args = sys.argv
 NUMBER_OF_ZERO_SEQUENCE = 4
 MAX_NODES = 10  # 最大ノード数
-blockchain = []
+BUF_SIZE = 2048
 global first
 
 if len(args) != 3:
@@ -169,7 +169,12 @@ def accept_user(sock, _):
 
 
 def read_node(conn, _):
-    data = conn.recv(4096).decode()
+    data = ''
+    while True:
+        tmp = conn.recv(BUF_SIZE).decode()
+        if not tmp:
+            break
+        data += tmp
     # ここの分岐をconn, dataによって行う
     if data:
         if data.startswith('transaction'):
@@ -206,6 +211,7 @@ def read_node(conn, _):
             # 新しいアドレスと鍵の取得
             new_address_key(data, 1)
         else:
+            print("size: " + len(data) + "str: " + data)
             print("okasii at read_node()")
         #print('echoing', repr(data), 'to', conn)
     else:
@@ -215,7 +221,12 @@ def read_node(conn, _):
 
 
 def read_user(conn, _):
-    data = conn.recv(4096).decode()
+    data = ''
+    while True:
+        tmp = conn.recv(BUF_SIZE).decode()
+        if not tmp:
+            break
+        data += tmp
     # ここの分岐をconn, dataによって行う
     if data:
         if data.startswith('transaction'):
@@ -237,14 +248,11 @@ def read_user(conn, _):
             # 新しいアドレスと鍵の取得
             data.replace('new_address_key', 'new_address_key from ' + str(node_port))
             new_address_key(data, 0)
-        elif data == 0:   # ユーザからEOFが送られてきた場合
-            sel.unregister(conn)
-            conn.close()
         else:
-            #print('echoing', repr(data), 'to', conn)
-            conn.send(data.encode())
-            sel.unregister(conn)
-            conn.close()
+            print('echoing', repr(data), 'to', conn)
+            # conn.sendall(data.encode())
+        sel.unregister(conn)
+        conn.close()
     else:
         print('closing', conn)
         sel.unregister(conn)

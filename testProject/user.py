@@ -3,9 +3,11 @@ from ecdsa_generator import KeyAddressGenerator
 import socket
 import selectors
 import sys
+import pprint
 import os
 # ユーザ側のマシンが実行するプログラム
 MAX_NODES = 10  # 最大ノード数
+BUF_SIZE = 2048     # recv(2)で一度に受け取るバイト数
 
 
 def send_message(string):
@@ -20,6 +22,7 @@ def send_message(string):
             try:
                 print("connect_nodes: " + str(send_port))
                 if send_port < 10010 + MAX_NODES:
+                    print("送ります: " + string)
                     s.connect(('127.0.0.1', send_port))
                     s.sendall(string.encode())
                     break
@@ -40,11 +43,17 @@ def accept(sock, _):
 
 
 def read(conn, _):
-    data = conn.recv(4096).decode()
+    data = ''
+    while True:
+        tmp = conn.recv(BUF_SIZE).decode()
+        if not tmp:
+            break
+        data += tmp
     # ここの分岐をconn, dataによって行う
     if data:
         print('echoing', repr(data), 'to', conn)
-        conn.send(data)
+        # conn.sendall(data)
+        print("owari")
     else:
         print('closing', conn)
         sel.unregister(conn)
@@ -113,16 +122,6 @@ sel.register(sys.stdin, selectors.EVENT_READ, std_input)
 # ノードに接続
 # send_message("hello")
 # send_message("hello222")
-
-# ウォレットの新規作成及び新規アドレスをひとつ追加する
-wallet = []
-
-wallet.append(KeyAddressGenerator().get_list())
-# 新しいアドレス・公開鍵をノード側に伝えておく
-send_address_public_key(wallet[0][2], wallet[0][1])
-
-
-
 
 print("Commands:\nSending money: /send\nCheck transaction history: /history")
 
