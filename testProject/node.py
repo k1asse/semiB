@@ -12,6 +12,7 @@ args = sys.argv
 NUMBER_OF_ZERO_SEQUENCE = 4
 MAX_NODES = 10  # 最大ノード数
 BUF_SIZE = 2048
+blockchain = []
 global first
 
 if len(args) != 3:

@@ -40,18 +40,19 @@ class Wallet:
                 return item["public_key"]
         return None
 
-    def get_private_public_key(self, addr):
+    def get_public_private_key(self, addr):
         """
-        引数として指定されたアドレスに対応する秘密鍵と公開鍵のdictを返す
+        引数として指定されたアドレスに対応する秘密鍵と公開鍵のtupleを返す
         なかったらNoneを返す
         """
         for item in self.key_address_list:
             if addr == item["address"]:
-                return {
-                    "private_key": item["private_key"],
-                    "public_key": item["public_key"]
-                }
+                return (
+                    item["public_key"],
+                    item["private_key"]
+                    )
         return None
+
 
 wallet = Wallet()
 wallet.new_key_address(10)

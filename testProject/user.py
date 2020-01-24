@@ -1,5 +1,9 @@
+import hashlib
+
 from transaction import Transaction
 from ecdsa_generator import KeyAddressGenerator
+from transaction import Transaction, Input, Output
+from wallet import Wallet
 import socket
 import selectors
 import sys
@@ -53,7 +57,6 @@ def read(conn, _):
     if data:
         print('echoing', repr(data), 'to', conn)
         # conn.sendall(data)
-        print("owari")
     else:
         print('closing', conn)
         sel.unregister(conn)
@@ -66,13 +69,8 @@ def std_input(conn, _):
     if line:
         if line == '/send':
             print("/send money")
-            print("sender_address?")
-            sender_address = sys.stdin.readline().strip()
-            print("receiver_address?")
-            receiver_address = sys.stdin.readline().strip()
-            print("value?")
-            value = sys.stdin.readline().strip()
-            make_transaction(sender_address,receiver_address,value)
+            transaction = make_transaction_from_std()
+            # pprint.pprint(transaction.get_dictionary())
         elif line == '/history':
             print("/history")
         else:
@@ -83,14 +81,69 @@ def std_input(conn, _):
         conn.close()
 
 
-def make_transaction(sender, receiver, value):
+def make_transaction_from_std():
     """
-    取引情報を作成する。具体的にはsender, receiver, valueを用いて文字列を作成する
+    標準入力により取引情報を作成する。具体的にはsender, receiver, valueを用いて文字列を作成し、その文字列を返す
     取引情報の文字列の先頭が"transaction"であれば
-    ノードが取引情報だと思ってくれます
+    ノードが取引情報だと思ってくれる
     """
-    trans = "transaction" + ',' + sender + ',' + receiver + ',' + value
-    send_message(trans)
+    address_list = wallet.get_address_list()
+    for index, address in enumerate(address_list):
+        print(str(index) + ": " + address)
+    while True:
+        print("sender_address?")
+        sender_addr_index = sys.stdin.readline().strip()
+        if sender_addr_index.isdecimal() and -1 < int(sender_addr_index) < len(address_list):
+            sender_addr = address_list[int(sender_addr_index)]
+            break
+    while True:
+        print("receiver_address?")
+        receiver_addr_index = sys.stdin.readline().strip()
+        if receiver_addr_index.isdecimal() and -1 < int(receiver_addr_index) < len(address_list):
+            receiver_addr = address_list[int(receiver_addr_index)]
+            break
+    while True:
+        print("value?")
+        value = sys.stdin.readline().strip()
+        if value.isdecimal():
+            value = int(value)
+            break
+    while True:
+        print("fee?")
+        fee = sys.stdin.readline().strip()
+        if fee.isdecimal():
+            fee = int(fee)
+            break
+
+    print("sender_addr: " + sender_addr)
+    print("receiver_addr:" + receiver_addr)
+    print("value: " + str(value))
+    print("fee: " + str(fee))
+
+    return make_transaction(sender_addr, receiver_addr, value, fee)
+
+
+def make_transaction(sender_addr, receiver_addr, value, fee):
+    transaction = Transaction()
+    # receiverの公開鍵ハッシュを求める
+    h = hashlib.new('ripemd160')
+    h.update(hashlib.sha256(wallet.get_public_key(receiver_addr).encode()).digest())
+    receiver_pub_key_hash = h.hexdigest()
+
+    # InputとOutputをtransactionに追加
+    pre_hash_index = get_pre_hash_index(sender_addr)
+    transaction.add_input(pre_hash_index[0], pre_hash_index[1])
+    transaction.add_output(value - fee, receiver_pub_key_hash)
+
+    pub_pri_key = wallet.get_public_private_key(sender_addr)
+    transaction.assign_signature(pub_pri_key[0], pub_pri_key[1])
+
+    return transaction
+
+
+def get_pre_hash_index(sender_addr):
+    """引数sender_addrについて、pre_hash, pre_indexのタプルを返す"""
+    return "pre_hash", "pre_index"
 
 
 def send_address_public_key(address, public_key):
@@ -123,7 +176,13 @@ sel.register(sys.stdin, selectors.EVENT_READ, std_input)
 # send_message("hello")
 # send_message("hello222")
 
+# walletの新規作成
+wallet = Wallet()
+wallet.new_key_address(3)
+
+
 print("Commands:\nSending money: /send\nCheck transaction history: /history")
+
 
 while True:
     # ノード用のソケットを登録
@@ -131,5 +190,5 @@ while True:
     # print(events)
     for key, mask in events:
         callback = key.data
-        #print(key.data)
+        # print(key.data)
         callback(key.fileobj, mask)

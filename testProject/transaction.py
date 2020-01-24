@@ -35,8 +35,8 @@ class Transaction:
             dictionary['outputs'].append(item.get_dictionary())
         return dictionary
 
-    def add_input(self, pre_hash, index, signature, pub_key):
-        self.inputs.append(Input(pre_hash, index, signature, pub_key))
+    def add_input(self, pre_hash, index):
+        self.inputs.append(Input(pre_hash, index))
 
     def add_output(self, value, pub_key_hash):
         self.outputs.append(Output(value, pub_key_hash))
@@ -85,11 +85,11 @@ class Transaction:
 class Input:
     """トランザクションの入力部分"""
 
-    def __init__(self, pre_hash, index, sign, pub_key):
+    def __init__(self, pre_hash, index):
         self.previous_hash = pre_hash
         self.output_index = index
-        self.signature = sign
-        self.public_key = pub_key
+        self.signature = None
+        self.public_key = None
 
     def get_dictionary(self):
         """入力のデータを辞書型に変換する"""
@@ -125,8 +125,8 @@ class Output:
 
 
 transaction = Transaction()
-transaction.add_input('prehash', 'index', None, None)
-transaction.add_input('prehash2', 'index2', 'sig2', 'pub_key2')
+transaction.add_input('prehash', 'index')
+transaction.add_input('prehash2', 'index2')
 transaction.add_output(200, 'key_hash')
 print(transaction.get_dictionary())
 pri_key, pub_key, addr = KeyAddressGenerator().get_list()
