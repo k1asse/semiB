@@ -28,6 +28,18 @@ class Block:
         self.time = int(time.time())
         self.header = BlockHeader(pre_hash, self.merkle_root, self.time, target)
 
+    @classmethod
+    def from_json(cls, json_str):
+        dictionary = json.loads(json_str)
+        # transactions[]から、トランザクションを取得する
+        trans_list = []
+        for item in dictionary["transactions"]:
+            trans_json = json.dumps(item)
+            trans_list.append(Transaction.from_json(trans_json))
+        return Block(dictionary["header"]["previous_block_header_hash"],
+                     dictionary["header"]["target"],
+                     trans_list)
+
     def get_json(self):
         """1回辞書型に変換して、jsonを取得する"""
         return json.dumps(self.get_dictionary())

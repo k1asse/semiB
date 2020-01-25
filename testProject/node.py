@@ -22,6 +22,7 @@ BUF_SIZE = 2048
 blockchain = []
 block_chain = BlockChain()
 global first
+global fl
 
 if len(args) != 3:
     print("usage: node.py [node port] [user port]")
@@ -105,6 +106,7 @@ def assign_nonce(block):
         print("header_hash: " + str(tmp))
 
 
+
 def generate_first_block():
     """
     初期ブロックを生成し、ブロックチェーン(BlockChainクラス)に加える
@@ -169,17 +171,17 @@ def generate_block(pre_hash, transaction_list):
 
 
 def hash_block(block):
-	block_string = json.dumps(block,sort_keys=True).encode()
-	return hashlib.sha256(block_string).hexdigest()
+    block_string = json.dumps(block, sort_keys=True).encode()
+    return hashlib.sha256(block_string).hexdigest()
 
 
 def hash_block_head(block_head):
-	block_head_string = json.dumps(block_head,sort_keys=True).encode()
-	return hashlib.sha256(block_head_string).hexdigest()
+    block_head_string = json.dumps(block_head, sort_keys=True).encode()
+    return hashlib.sha256(block_head_string).hexdigest()
 
 
 def hash_transaction(transaction):
-    transaction_string = json.dumps(transaction,sort_keys=True).encode()
+    transaction_string = json.dumps(transaction, sort_keys=True).encode()
     return hashlib.sha256(transaction_string).hexdigest()
 
 
@@ -192,15 +194,24 @@ def send_result(transaction, conn):
 
 
 def transact(string):
+    global fl
     print("transact")
     # これサブのスレッドでやらんとしんどい(ソケット監視ができない)
     # トランザクションのインスタンスを作る
     transaction = make_transaction_instance(string)
     # ブロックを生成する(TODO ブロック中の取引情報数を1として考えてるので複数に変更)
     # print("おい前のブロックのハッシュ" + str(block_chain.get_tail_block_hash().hex()))
-    block = generate_block("pre_hash", [transaction])
+    block = generate_block(block_chain.get_tail_block_hash().hex(), [transaction])
     # ナンスを代入し始める
+    pprint.pprint(block.get_dictionary())
     assign_nonce(block)
+    # チェーンの末尾にブロックを追加
+    block_chain.add_block(block)
+    if not fl:
+        print("チェーン末尾のブロックハッシュ:")
+        print(block_chain.get_tail_block().get_header_hash().hex())
+        print("チェーン末尾のナンス:")
+        print(block_chain.get_tail_block().header.nonce)
     
 
 
@@ -219,6 +230,7 @@ def accept_user(sock, _):
 
 
 def read_node(conn, _):
+    global fl
     data = ''
     while True:
         tmp = conn.recv(BUF_SIZE).decode()
@@ -235,6 +247,7 @@ def read_node(conn, _):
                     # 取引情報の処理(スレッドの開始)
                     # 取引情報は同時に一個しか来ない前提
                     # 複数に対応するならスレッドをリスト化かして複数保持させる
+                    fl = False
                     thread.start()
                 else:
                     pass    # 自分が送ってきたものなら何もしない
@@ -244,6 +257,7 @@ def read_node(conn, _):
                 # 取引情報の処理(スレッドの開始)
                 # 取引情報は同時に一個しか来ない前提
                 # 複数に対応するならスレッドをリスト化かして複数保持させる
+                fl = False
                 thread.start()
 
         elif data.startswith('nonce'):
@@ -263,6 +277,13 @@ def read_node(conn, _):
                         print("ナンスは間違っています")
                     elif i == NUMBER_OF_ZERO_SEQUENCE - 1:
                         print("ナンスは正しいです")
+                        block_chain.get_tail_block().set_nonce(header.nonce)
+                        print("チェーン末尾のブロックハッシュ:")
+                        print(block_chain.get_tail_block().get_header_hash().hex())
+                        print("チェーン末尾のナンス:")
+                        print(block_chain.get_tail_block().header.nonce)
+                        fl = True
+
             else:
                 print("ヘッダのターゲットが違います")
         elif data.startswith('connection_check'):

@@ -49,6 +49,13 @@ class BlockChain:
         else:
             return self.chain[-1].get_hash()
 
+    def get_tail_block(self):
+        """ブロックチェーンの末尾ブロックを取得する"""
+        if len(self.chain) == 0:
+            return None
+        else:
+            return self.chain[-1]
+
 
 
 
