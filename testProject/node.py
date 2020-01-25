@@ -37,7 +37,9 @@ def is_transaction(string):
     取引情報のチェックを行う
     """
     print("取引情報がユーザからきました\n")
-    return True
+    print("取引string: " + string)
+    transaction = Transaction.from_json(string[12:])
+    return transaction.check_signature()
 
 
 def make_transaction_instance(string):

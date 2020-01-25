@@ -92,6 +92,7 @@ class Transaction:
         # 公開鍵を用いて
         vk = ecdsa.VerifyingKey.from_string(bytes.fromhex(public_key.replace('04', '', 1)), curve=ecdsa.SECP256k1)
         assert vk.verify(signature, digest_b)
+        return True
 
 
 class Input:
